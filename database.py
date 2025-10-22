@@ -13,8 +13,16 @@ class User(Base):
     first_name = sq.Column(sq.String(50))
     last_name = sq.Column(sq.String(50))
     age = sq.Column(sq.Integer)
-    sex = sq.Column(sq.String(8))
+    sex = sq.Column(sq.Integer)
     city = sq.Column(sq.String(50))
+
+    #интересы:
+    music = sq.Column(sq.Text)
+    books = sq.Column(sq.Text)
+    groups = sq.Column(sq.Text)
+
+    favorites = relationship("Favorite", back_populates="user")
+    blacklist = relationship("Blacklist", back_populates="user")
 
 
 class Blacklist(Base):
