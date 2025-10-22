@@ -16,9 +16,6 @@ class User(Base):
     sex = sq.Column(sq.String(8))
     city = sq.Column(sq.String(50))
 
-    def __repr__(self):
-        return f"<User(vk_id={self.vk_id}, name={self.first_name} {self.last_name})>"
-
 
 class Blacklist(Base):
     __tablename__ = "blacklist"
