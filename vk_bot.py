@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import vk_api
 from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 # -------------------- Настройка --------------------
 load_dotenv()
@@ -17,10 +18,16 @@ longpoll = VkLongPoll(vk_session)
 # Временное хранилище данных пользователей
 user_data_temp = {}
 
+keyboard = VkKeyboard(one_time=False)
+keyboard.add_button('start', color=VkKeyboardColor.POSITIVE)
+# keyboard.add_button('help', color=VkKeyboardColor.PRIMARY)
+# keyboard.add_line()  # новая строка
+# keyboard.add_button('Выход', color=VkKeyboardColor.NEGATIVE)
+
 # -------------------- Функции --------------------
 def send_msg(user_id: int, text: str):
     """Отправка сообщения пользователю"""
-    vk.messages.send(user_id=user_id, message=text, random_id=get_random_id())
+    vk.messages.send(user_id=user_id, message=text, random_id=get_random_id(), keyboard=keyboard.get_keyboard())
 
 def get_user_info(user_id: int) -> dict:
     """Получение информации о пользователе из профиля VK"""
@@ -94,6 +101,11 @@ for event in longpoll.listen():
     if user_id not in user_data_temp:
         user_data_temp[user_id] = {}
 
+    if msg != 'start' and "awaiting" not in user_data_temp[user_id]:
+        text = "Привет! Это бот для знакомств. Нажми кнопку start, чтобы начать"
+        send_msg(user_id, text)
+        continue
+
     # Если ждём ответ на недостающие данные
     if "awaiting" in user_data_temp[user_id]:
         if not process_response(user_id, msg):
@@ -116,10 +128,10 @@ for event in longpoll.listen():
     age = user_data_temp[user_id].get("age", user_info["age"])
 
     send_msg(user_id, f"✅ Здравствуй, {first_name}!\nТвой город: {city}\nТвой пол: {sex}\nТвой возраст: {age}")
-    print(user_data_temp)
     user_data_temp.pop(user_id, None)
-    print(user_data_temp)
 
-    # --- TODO: здесь можно продолжить с поиском пользователей ---
+    # --- TODO 1: Вызвать метод для сохранения данных в БД (когда будет готова интеграция) ---
+
+    # --- TODO 2: здесь можно продолжить с поиском пользователей ---
     # opposite_sex = 1 if final_sex == 2 else 2
     # send_msg(user_id, "🔍 Ищу подходящих людей...")
