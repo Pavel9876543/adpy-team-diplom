@@ -70,7 +70,7 @@ def check_missing_fields(user_info: dict, temp_data: dict) -> list:
 def request_field(user_id: int, field: str):
     """Запрос у пользователя недостающей информации"""
     prompts = {"sex": "Укажи свой пол (м/ж):", "city": "Укажи свой город:", "age": "Укажи свой возраст (числом):"}
-    if field == "age":
+    if field == "sex":
         send_msg(user_id, prompts[field], custom_keyboard=keyboard_sex())
     else:
         send_msg(user_id, prompts[field])
