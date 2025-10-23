@@ -25,9 +25,18 @@ keyboard.add_button('start', color=VkKeyboardColor.POSITIVE)
 # keyboard.add_button('Выход', color=VkKeyboardColor.NEGATIVE)
 
 # -------------------- Функции --------------------
-def send_msg(user_id: int, text: str):
+def send_msg(user_id: int, text: str, custom_keyboard=None):
     """Отправка сообщения пользователю"""
-    vk.messages.send(user_id=user_id, message=text, random_id=get_random_id(), keyboard=keyboard.get_keyboard())
+    if custom_keyboard:
+        vk.messages.send(user_id=user_id, message=text, random_id=get_random_id(), keyboard=custom_keyboard)
+    else:
+        vk.messages.send(user_id=user_id, message=text, random_id=get_random_id(), keyboard=keyboard.get_keyboard())
+
+def keyboard_sex():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button("Мужской", color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button("Женский", color=VkKeyboardColor.NEGATIVE)
+    return keyboard.get_keyboard()
 
 def get_user_info(user_id: int) -> dict:
     """Получение информации о пользователе из профиля VK"""
@@ -61,7 +70,10 @@ def check_missing_fields(user_info: dict, temp_data: dict) -> list:
 def request_field(user_id: int, field: str):
     """Запрос у пользователя недостающей информации"""
     prompts = {"sex": "Укажи свой пол (м/ж):", "city": "Укажи свой город:", "age": "Укажи свой возраст (числом):"}
-    send_msg(user_id, prompts[field])
+    if field == "age":
+        send_msg(user_id, prompts[field], custom_keyboard=keyboard_sex())
+    else:
+        send_msg(user_id, prompts[field])
     user_data_temp[user_id]["awaiting"] = field
 
 def process_response(user_id: int, msg: str) -> bool:
@@ -71,12 +83,12 @@ def process_response(user_id: int, msg: str) -> bool:
         return False
 
     if awaiting == "sex":
-        if msg in ["м", "муж", "парень"]:
+        if msg in ["м", "муж", "парень", "мужской"]:
             user_data_temp[user_id]["sex"] = 2
-        elif msg in ["ж", "жен", "девушка"]:
+        elif msg in ["ж", "жен", "девушка", "женский"]:
             user_data_temp[user_id]["sex"] = 1
         else:
-            send_msg(user_id, "Введи корректно: м/ж")
+            send_msg(user_id, "Выберите пол, нажав на кнопку ниже:", custom_keyboard=keyboard_sex())
             return False
     elif awaiting == "city":
         user_data_temp[user_id]["city"] = msg.title()
@@ -126,6 +138,8 @@ for event in longpoll.listen():
     city = user_data_temp[user_id].get("city", user_info["city"])
     first_name = user_data_temp[user_id].get("first_name", user_info["first_name"])
     age = user_data_temp[user_id].get("age", user_info["age"])
+    books = user_data_temp[user_id].get("books", user_info["books"])
+    music = user_data_temp[user_id].get("music", user_info["music"])
 
     send_msg(user_id, f"✅ Здравствуй, {first_name}!\nТвой город: {city}\nТвой пол: {sex}\nТвой возраст: {age}")
     user_data_temp.pop(user_id, None)
