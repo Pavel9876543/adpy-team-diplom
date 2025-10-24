@@ -153,3 +153,52 @@
 
 Зачёт ставится всем студентам-участникам команды при выполнении всех требований командного проекта.
 
+#для проекта
+### Скрипты для создания таблиц
+
+**Основные скрипты:**
+- `init_database.py` - главный скрипт создания всех таблиц
+- `models/` - папка с моделями ORM SQLAlchemy
+  - `models/base.py` - базовый класс моделей
+  - `models/user.py` - модель пользователей
+  - `models/photo.py` - модель фотографий
+  - `models/favorite.py` - модель избранного
+  - `models/blacklist.py` - модель черного списка
+
+### Быстрый старт
+
+1. **Установите PostgreSQL:**
+```bash
+# Для Windows:
+- Скачайте установщик с [официального сайта PostgreSQL](https://www.postgresql.org/download/windows/)
+- Запустите установщик и следуйте инструкциям
+- Запомните пароль, который вы зададите для пользователя postgres
+- Запустите pgAdmin или используйте командную строку
+# Для Mac через Homebrew:
+brew install postgresql
+brew services start postgresql
+#Для Linux (Ubuntu/Debian):
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
+```
+2. Создайте базу данных:
+```
+psql -U postgres -c "CREATE DATABASE vkinder_app_db;"
+```
+3. Настройте проект:
+```
+# Активируйте виртуальную среду
+source .venv/bin/activate
+
+# Установите зависимости
+pip install -r requirements.txt
+
+# Создайте файл окружения
+cp .env.example .env
+```
+4. Инициализируйте базу данных:
+```
+bash
+python init_database.py
+```

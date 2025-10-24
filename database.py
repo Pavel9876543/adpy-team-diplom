@@ -5,10 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 from models.base import Base
 
-# Настройки подключения (аналогичные docker-compose)
+# Подключение к локальной PostgreSQL
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://postgres:password@localhost:5432/vkinder_app_db"

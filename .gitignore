@@ -22,9 +22,11 @@ wheels/
 MANIFEST
 
 # Virtual environments
-venv/
-env/
 .venv/
+venv/
+.venv-*/
+env/
+ENV/
 
 # Environment variables
 .env
@@ -54,3 +56,6 @@ logs/
 # Temp files
 *.tmp
 *.temp
+
+
+test_vkinder_db_simple.py
