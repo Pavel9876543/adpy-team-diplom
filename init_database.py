@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 скрипт для инициализации БД
-хапускать после: установки PostgreSQL и создания БД vkinder_app_db
+запускать после: установки PostgreSQL и создания БД
 """
 
 import time
 import sys
 from sqlalchemy.exc import OperationalError
 
-from database import init_db, engine
+from db import create_database, engine
 
 def wait_for_db(max_retries=10, delay=2):
     for i in range(max_retries):
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     if wait_for_db():
         try:
-            init_db()
+            create_database()
             print("Таблицы успешно созданы!")
             print("Созданные таблицы: users, photos, favorites, blacklist")
         except Exception as e:

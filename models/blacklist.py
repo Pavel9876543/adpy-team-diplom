@@ -1,6 +1,6 @@
 import sqlalchemy as sq
-from sqlalchemy.orm import declarative_base, relationship
-from .base import Base
+from sqlalchemy.orm import relationship
+from models import Base
 
 
 class Blacklist(Base):

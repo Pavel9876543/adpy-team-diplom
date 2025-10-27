@@ -1,5 +1,5 @@
 from models import User, Favorite, Blacklist, Photo
-from db.engine import get_session
+from db import get_session
 
 
 # -------------------- Функции для таблицы User--------------------
