@@ -15,7 +15,7 @@ DB_NAME = os.getenv('DB_NAME')
 DSN = f"postgresql://{LOGIN}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
 
 engine = sqlalchemy.create_engine(DSN)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_database():
     """Создает таблицы в БД"""
@@ -27,5 +27,5 @@ def delete_database():
 
 def get_session():
     """Создание сессии"""
-    db = SessionLocal()
+    db = Session()
     return db

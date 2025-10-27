@@ -50,6 +50,39 @@ def get_user(vk_id: int):
             return None
 
 
+def update_user(vk_id: int, update_data: dict) -> bool:
+    """
+    Обновляет информацию о пользователе в таблице User
+    vk_id - VK ID пользователя которого нужно обновить
+    update_data - словарь с полями для обновления
+    Возвращает True если успешно, False если ошибка
+    """
+    with get_session() as session:
+        try:
+            # Кого обновляем, есть ли он в таблице User
+            user = session.query(User).filter(User.vk_id == vk_id).first()
+            if not user:
+                print(f"❌ Пользователь с VK ID {vk_id} не найден")
+                return False
+
+            # Обновляем все переданные поля
+            for field, value in update_data.items():
+                if hasattr(user, field):
+                    setattr(user, field, value)
+                    print(f"🔄 Обновлено поле {field}: {value}")
+                else:
+                    print(f"⚠️ Поле {field} не существует в таблице User")
+
+            session.commit()
+            print(f"✅ Данные пользователя {vk_id} успешно обновлены")
+            return True
+
+        except Exception as e:
+            session.rollback()
+            print(f"❌ Ошибка обновления пользователя: {e}")
+            return False
+
+
 def delete_user(user_vk_id: int) -> bool:
     """
     Удаляет пользователя из таблицы User и все его связанные данные в других таблицах
