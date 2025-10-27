@@ -29,6 +29,3 @@ def delete_database():
 def get_session():
     """Создание сессии"""
     return Session()
-
-create_database()
-# delete_database()
