@@ -10,6 +10,8 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 # -------------------- Настройка --------------------
 load_dotenv()
 TOKEN = os.getenv("VK_BOT_TOKEN")
+SERVICE_TOKEN = os.getenv("VK_SERVICE_TOKEN")
+vk_service = vk_api.VkApi(token=SERVICE_TOKEN).get_api()
 
 vk_session = vk_api.VkApi(token=TOKEN)
 vk = vk_session.get_api()
@@ -100,6 +102,48 @@ def process_response(user_id: int, msg: str) -> bool:
 
     del user_data_temp[user_id]["awaiting"]
     return True
+
+
+def get_top_photos(target_user_id: int, count: int = 3):
+    """
+    Поиск топ-3 фотографий пользователя
+    target_user_id - id вконтакте, у кого ищем
+    count - количество фотографий
+    Возвращает список attachment фотографий в количестве count штук
+    """
+    try:
+        # Проверяем доступность профиля
+        user_info = vk_service.users.get(
+            user_ids=target_user_id,
+            fields='can_access_closed,is_closed'
+        )[0]
+
+        # Если профиль закрыт и мы не можем его просматривать
+        if user_info.get('is_closed') and not user_info.get('can_access_closed'):
+            return None
+        # Gjkexftv
+        photos = vk_service.photos.get(
+            owner_id=target_user_id,
+            album_id='profile',
+            extended=1,
+            count=100
+        )
+
+        sorted_photos = sorted(
+            photos['items'],
+            key=lambda x: x['likes']['count'],
+            reverse=True
+        )
+        top_photos = sorted_photos[:count]
+        photo_attachments = []
+        for photo in top_photos:
+            # Создаем attachment в формате photo{owner_id}_{photo_id}
+            attachment = f"photo{photo['owner_id']}_{photo['id']}"
+            photo_attachments.append(attachment)
+        return photo_attachments
+    except Exception as e:
+        print(f"Ошибка получения фото: {e}")
+        return []
 
 # -------------------- Основной цикл --------------------
 for event in longpoll.listen():
