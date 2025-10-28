@@ -13,7 +13,8 @@ from db import add_to_user, get_user
 
 # -------------------- Настройка --------------------
 load_dotenv()
-SERVICE_TOKEN = os.getenv("SERVICE_TOKEN")
+
+SERVICE_TOKEN = os.getenv("VK_SERVICE_TOKEN")
 GROUP_TOKEN = os.getenv("VK_BOT_TOKEN")
 
 # Сервисный ВК для поиска
@@ -169,74 +170,99 @@ def process_response(user_id: int, msg: str) -> bool:
     user_data_temp[user_id].pop("awaiting", None)
     return True
 
-def get_users_by_gender(target_age, gender=1, count=3, max_attempts=100):
+def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100):
     """
+    Поиск случайных пользователей по полу, возрасту, семейному статусу и фото.
     gender: 1 - female, 2 - male
-    count: минимальное количество фотографий профиля
-    target_age: возраст, с которым сравниваем (+/-5 лет)
-    max_attempts: сколько случайных user_id попробовать
+    target_age: возраст пользователя (+/-5 лет)
+    count_photo: минимум фото на аватарке
     """
     attempts = 0
     while attempts < max_attempts:
         attempts += 1
 
-        # Генерируем случайный user_id
-        random_user_id = random.randint(1, 500_000_000)
+        random_user_id = random.randint(1, 1_000_000_000)
 
         try:
-            # Добавили поле relation
             user_info = vk_service.users.get(
                 user_ids=random_user_id,
-                fields="sex,bdate,relation"
+                fields="sex,bdate,relation,first_name,last_name,is_closed,can_access_closed"
             )
+            if not user_info:
+                continue
+
             user = user_info[0]
+
+            # Пропускаем удалённых и заблокированных пользователей
+            if user.get("deactivated"):
+                continue
+
+            # Закрытые аккаунты — пропускаем
+            if user.get("is_closed") and not user.get("can_access_closed"):
+                continue
 
             # Проверяем пол
             if user.get("sex") != gender:
                 continue
 
-            # Проверяем семейное положение
+            # Семейное положение: 0 – не указано, 1 – не женат/не замужем, 6 – в активном поиске
             relation = user.get("relation", 0)
             if relation not in (0, 1, 6):
                 continue
 
             # Проверяем возраст
-            bdate = user.get("bdate")
-            age = calculate_age(bdate)
-            if age is None:
-                continue
-            if abs(age - target_age) > 5:
+            age = calculate_age(user.get("bdate"))
+            if age is None or abs(age - target_age) > 5:
                 continue
 
-            # Получаем фотографии профиля
-            photos_resp = vk_service.photos.get(
-                owner_id=random_user_id,
-                album_id='profile',
-                count=count,
-                photo_sizes=1
-            )
-            photos = photos_resp.get('items', [])
-            if len(photos) < count:
+            # Фото
+            attachments_str = get_top_photos(random_user_id, count_photo)
+            if not attachments_str:
                 continue
 
-            # attachments
-            attachments = [f"photo{p['owner_id']}_{p['id']}" for p in photos]
-            attachments_str = ",".join(attachments)
-
-            # Ссылка
-            profile_link = f"https://vk.com/id{random_user_id}"
-
+            # Успех
             return {
                 "first_name": user.get("first_name"),
                 "last_name": user.get("last_name"),
-                "profile_link": profile_link,
+                "profile_link": f"https://vk.com/id{random_user_id}",
                 "attachments": attachments_str
             }
 
-        except vk_api.exceptions.VkApiError:
+        except Exception:
             continue
 
     return None
+
+
+def get_top_photos(target_user_id: int, count: int = 3):
+    """Возвращает top-count фото пользователя по количеству лайков."""
+    try:
+        photos = vk_service.photos.get(
+            owner_id=target_user_id,
+            album_id='profile',
+            extended=1,
+            count=50  # берём побольше для сортировки
+        )
+
+        photo_list = photos.get('items', [])
+        if len(photo_list) < count:
+            return None
+
+        # Берём TOP по лайкам
+        sorted_photos = sorted(
+            photo_list,
+            key=lambda x: x.get('likes', {}).get('count', 0),
+            reverse=True
+        )
+
+        top_photos = sorted_photos[:count]
+        attachments = [f"photo{p['owner_id']}_{p['id']}" for p in top_photos]
+        return ",".join(attachments)
+
+    except Exception:
+        return None
+
+
 
 def handle_registration(user_id, msg):
     """Обрабатывает регистрацию пользователя и возвращает sex_id, age"""
@@ -321,7 +347,7 @@ while True:
                 opposite_sex = 1 if sex_id == 2 else 2
                 msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_single_button('search'))
 
-                users = get_users_by_gender(target_age=age, gender=opposite_sex, count=3, max_attempts=250)
+                users = get_users_by_gender(target_age=age, gender=opposite_sex, count_photo=3, max_attempts=250)
 
                 # Асинхронное удаление сообщения
                 safe_delete_msg(msg_id)
