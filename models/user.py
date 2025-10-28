@@ -17,7 +17,7 @@ class User(Base):
     #интересы:
     music = sq.Column(sq.Text)
     books = sq.Column(sq.Text)
-    groups = sq.Column(sq.Text)
+    # groups = sq.Column(sq.Text)
 
     favorites = relationship("Favorite", back_populates="user")
     blacklist = relationship("Blacklist", back_populates="user")

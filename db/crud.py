@@ -19,16 +19,16 @@ def add_to_user(user_data: dict) -> User:
                 city=user_data.get('city'),
                 music=user_data.get('music'),
                 books=user_data.get('books'),
-                groups=user_data.get('groups')
+                # groups=user_data.get('groups')
             )
             session.add(user)
             session.commit()
             print(f"✅ Пользователь {user_data['vk_id']} сохранен в БД")
-            return user
+            return type(user).__name__
         except Exception as e:
             session.rollback()
             print(f"❌ Ошибка сохранения пользователя: {e}")
-            return None
+            return type(e).__name__
 
 
 def get_user(vk_id: int):
