@@ -142,7 +142,7 @@ def add_to_favorite(user_vk_id: int, favorite_vk_id: int) -> Favorite:
 
             if existing_favorite:
                 print(f"⚠️ Пользователь {favorite_vk_id} уже в избранном")
-                return existing_favorite
+                return True
 
             # Создаем запись в избранном
             favorite = Favorite(
@@ -271,7 +271,7 @@ def add_to_blacklist(user_vk_id: int, blocked_vk_id: int) -> Blacklist:
 
             if existing_blacklist:
                 print(f"⚠️ Пользователь {blocked_vk_id} уже в черном списке")
-                return existing_blacklist
+                return True
 
             # Создаем запись в черном списке
             blacklisted = Blacklist(

@@ -1,10 +1,11 @@
+import json
 import threading
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 from config import vk_group
 
 
-# -------------------- Функции --------------------
+# -------------------- Отправка/удаление сообщений --------------------
 def safe_delete_msg(message_id):
     """Удаляет сообщение асинхронно, чтобы longpoll не падал"""
 
@@ -41,21 +42,26 @@ def keyboard_sex():
     kb.add_button("Женский", color=VkKeyboardColor.NEGATIVE)
     return kb.get_keyboard()
 
-def create_inline_keyboard(buttons: list, one_time: bool = False) -> str:
+def create_inline_keyboard(buttons: list) -> str:
     """
-    Создаёт inline-клавиатуру с произвольными кнопками.
+    Создаёт inline-клавиатуру с callback-кнопками.
     Ограничение: не более 4 кнопок на ряд.
 
     :param buttons: Список списков с текстом кнопок, например:
                     [["Да", "Нет"], ["Может"]]
-    :param one_time: Одноразовая клавиатура
     :return: JSON клавиатуры
     """
-    kb = VkKeyboard(one_time=one_time, inline=True)
+    kb = VkKeyboard(inline=True)
 
     for row in buttons:
         for idx, btn_text in enumerate(row):
             if idx > 0:
-                kb.add_line()  # новая линия между кнопками ряда
-            kb.add_button(btn_text, color=VkKeyboardColor.PRIMARY)
+                kb.add_line()
+
+            kb.add_button(
+                label=btn_text,
+                color=VkKeyboardColor.PRIMARY,
+            )
+
     return kb.get_keyboard()
+

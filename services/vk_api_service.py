@@ -1,6 +1,28 @@
 import random
-from config import vk_service
+from config import vk_service, vk_group
 from handlers import calculate_age
+
+# -------------------- Работа с пользователем --------------------
+def get_user_info(user_id: int) -> dict:
+    """Получение информации о пользователе из профиля VK"""
+    try:
+        user = vk_group.users.get(user_ids=user_id, fields="city,sex,bdate,books,music")[0]
+    except Exception as e:
+        print(f"[get_user_info error] {e}")
+        return {}
+
+    bdate = user.get("bdate")
+    age = calculate_age(bdate)
+
+    return {
+        "first_name": user.get("first_name"),
+        "last_name": user.get("last_name"),
+        "sex": user.get("sex"),  # 1 — женщина, 2 — мужчина
+        "city": user.get("city", {}).get("title"),
+        "age": age,
+        "books": user.get("books"),
+        "music": user.get("music")
+    }
 
 
 def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100):
@@ -14,7 +36,7 @@ def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100):
     while attempts < max_attempts:
         attempts += 1
 
-        random_user_id = random.randint(1, 1_000_000_000)
+        random_user_id = 336964607
 
         try:
             user_info = vk_service.users.get(
@@ -58,7 +80,8 @@ def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100):
                 "first_name": user.get("first_name"),
                 "last_name": user.get("last_name"),
                 "profile_link": f"https://vk.com/id{random_user_id}",
-                "attachments": attachments_str
+                "attachments": attachments_str,
+                "vk_id": random_user_id
             }
 
         except Exception:

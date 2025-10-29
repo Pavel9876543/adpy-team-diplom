@@ -1,6 +1,7 @@
-from db import add_to_user
-from handlers import send_msg, keyboard_single_button, process_response, get_user_info, \
+from db import add_to_user, add_to_favorite, add_to_blacklist
+from handlers import send_msg, keyboard_single_button, process_response, \
     check_missing_fields, request_field
+from services import get_user_info
 
 
 def handle_registration(user_id, msg, user_data_temp):
@@ -45,3 +46,21 @@ def handle_registration(user_id, msg, user_data_temp):
 
     user_data_temp.pop(user_id, None)
     return final_data["sex"], final_data["age"]
+
+def save_to_favorites(user_id, favorite_vk_id):
+    result_added_favorite = add_to_favorite(user_id, favorite_vk_id)
+    if not result_added_favorite:
+        send_msg(user_id, "❌ Не удалось добавить пользователя в избранное")
+    elif result_added_favorite is True:
+         send_msg(user_id, f"⚠️ Пользователь уже в избранном")
+    else:
+        send_msg(user_id, "✅ Пользователь успешно добавлен в избранное")
+
+def save_to_blacklist(user_id, blocked_vk_id):
+    result_added_favorite = add_to_blacklist(user_id, blocked_vk_id)
+    if not result_added_favorite:
+        send_msg(user_id, "❌ Не удалось добавить пользователя в черный список")
+    elif result_added_favorite is True:
+        send_msg(user_id, f"⚠️ Пользователь уже в черном списке")
+    else:
+        send_msg(user_id, "✅ Пользователь успешно добавлен в черный список")

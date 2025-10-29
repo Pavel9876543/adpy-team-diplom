@@ -3,8 +3,7 @@ from vk_api.longpoll import VkEventType
 from db import get_user
 from config import longpoll
 from handlers import send_msg, safe_delete_msg, keyboard_single_button, create_inline_keyboard
-from services import handle_registration, get_users_by_gender
-
+from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist
 
 # Временное хранилище данных пользователей
 user_data_temp = {}
@@ -48,13 +47,14 @@ while True:
                 opposite_sex = 1 if sex_id == 2 else 2
                 msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_single_button('search'))
 
-                users = get_users_by_gender(target_age=age, gender=opposite_sex, count_photo=3, max_attempts=250)
+                users = get_users_by_gender(target_age=age, gender=opposite_sex, count_photo=3, max_attempts=150)
+                vk_id = users.get('vk_id')
 
                 # Асинхронное удаление сообщения
                 safe_delete_msg(msg_id)
 
                 if users:
-                    keyboard_json = create_inline_keyboard([['Добавить в избранное', 'Добавить в черный список']])
+                    keyboard_json = create_inline_keyboard([[f'Добавить в избранное: {vk_id}', f'Добавить в черный список: {vk_id}']])
                     send_msg(
                         user_id,
                         f"{users['first_name']} {users['last_name']}\n\n{users['profile_link']}",
@@ -68,7 +68,15 @@ while True:
                         custom_keyboard=keyboard_single_button('search')
                     )
 
-    except AttributeError:
+            print(msg[:20])
+            if msg[:20] == 'добавить в избранное':
+                save_to_favorites(user_id, int(msg[22:]))
+            elif msg[:24] == 'добавить в черный список':
+                save_to_blacklist(user_id, int(msg[26:]))
+
+
+
+    except AttributeError as e:
         # защита от редких системных событий longpoll без .text
         continue
     except Exception as e:

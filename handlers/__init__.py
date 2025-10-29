@@ -1,2 +1,2 @@
 from .event_handlers import safe_delete_msg, send_msg, keyboard_single_button, keyboard_sex, create_inline_keyboard
-from .message_handler import get_user_info, process_response, check_missing_fields, request_field, calculate_age
+from .message_handler import process_response, check_missing_fields, request_field, calculate_age
