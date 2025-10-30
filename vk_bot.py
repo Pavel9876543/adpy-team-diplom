@@ -1,6 +1,6 @@
 import time
 from vk_api.longpoll import VkEventType
-from db import get_user
+from db import get_user, get_blacklist_list_blocked_vk_id, get_favorite_list_favorite_vk_id
 from config import longpoll
 from handlers import send_msg, safe_delete_msg, keyboard_single_button, create_inline_keyboard
 from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist
@@ -44,10 +44,20 @@ while True:
                     sex_id = search_user.sex
                     age = search_user.age
 
+                blacklist_ids = get_blacklist_list_blocked_vk_id(user_id)
+                favorite_ids = get_favorite_list_favorite_vk_id(user_id)
+                exclude_ids = set(blacklist_ids + favorite_ids)
+
                 opposite_sex = 1 if sex_id == 2 else 2
                 msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_single_button('search'))
 
-                users = get_users_by_gender(target_age=age, gender=opposite_sex, count_photo=3, max_attempts=150)
+                users = get_users_by_gender(
+                    target_age=age,
+                    gender=opposite_sex,
+                    count_photo=3,
+                    max_attempts=150,
+                    exclude_ids=exclude_ids
+                )
                 vk_id = users.get('vk_id')
 
                 # Асинхронное удаление сообщения
