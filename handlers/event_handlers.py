@@ -42,6 +42,15 @@ def keyboard_sex():
     kb.add_button("Женский", color=VkKeyboardColor.NEGATIVE)
     return kb.get_keyboard()
 
+def keyboard_main_menu():
+    """Клавиатура основного меню после регистрации"""
+    kb = VkKeyboard(one_time=False)
+    kb.add_button("search", color=VkKeyboardColor.PRIMARY)
+    kb.add_line()  # переход на новую строку
+    kb.add_button("favorites", color=VkKeyboardColor.POSITIVE)
+    kb.add_button("blacklist", color=VkKeyboardColor.NEGATIVE)
+    return kb.get_keyboard()
+
 def create_inline_keyboard(buttons: list) -> str:
     """
     Создаёт inline-клавиатуру с callback-кнопками.
