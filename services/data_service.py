@@ -49,18 +49,24 @@ def handle_registration(user_id, msg, user_data_temp):
 
 def save_to_favorites(user_id, favorite_vk_id):
     result_added_favorite = add_to_favorite(user_id, favorite_vk_id)
-    if not result_added_favorite:
-        send_msg(user_id, "❌ Не удалось добавить пользователя в избранное")
-    elif result_added_favorite is True:
+    if result_added_favorite is None: # Новый случай: ошибка или конфликт
+        # Сообщение уже выведено в crud.py
+        pass # Или можно добавить логирование сюда, если нужно
+    elif result_added_favorite is True: # Уже в избранном
          send_msg(user_id, f"⚠️ Пользователь уже в избранном")
-    else:
+    elif result_added_favorite: # Успешно добавлен (возвращен объект Favorite)
         send_msg(user_id, "✅ Пользователь успешно добавлен в избранное")
+    else: # Остальные ошибки (хотя add_to_favorite не должен возвращать False, но на всякий случай)
+        send_msg(user_id, "❌ Не удалось добавить пользователя в избранное")
 
 def save_to_blacklist(user_id, blocked_vk_id):
     result_added_favorite = add_to_blacklist(user_id, blocked_vk_id)
-    if not result_added_favorite:
-        send_msg(user_id, "❌ Не удалось добавить пользователя в черный список")
-    elif result_added_favorite is True:
+    if result_added_favorite is None: # Новый случай: ошибка или конфликт
+        # Сообщение уже выведено в crud.py
+        pass # Или можно добавить логирование сюда, если нужно
+    elif result_added_favorite is True: # Уже в черном списке
         send_msg(user_id, f"⚠️ Пользователь уже в черном списке")
-    else:
+    elif result_added_favorite: # Успешно добавлен (возвращен объект Blacklist)
         send_msg(user_id, "✅ Пользователь успешно добавлен в черный список")
+    else: # Остальные ошибки
+        send_msg(user_id, "❌ Не удалось добавить пользователя в черный список")

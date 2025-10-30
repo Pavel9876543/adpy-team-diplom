@@ -25,18 +25,24 @@ def get_user_info(user_id: int) -> dict:
     }
 
 
-def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100):
+def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100, exclude_ids=None):
     """
     Поиск случайных пользователей по полу, возрасту, семейному статусу и фото.
     gender: 1 - female, 2 - male
     target_age: возраст пользователя (+/-5 лет)
     count_photo: минимум фото на аватарке
     """
+    exclude_ids = set(exclude_ids) if exclude_ids else set()
+
     attempts = 0
     while attempts < max_attempts:
         attempts += 1
 
         random_user_id = 336964607
+
+        # Пропускаем пользователей из чс и избранного
+        if random_user_id in exclude_ids:
+            continue
 
         try:
             user_info = vk_service.users.get(

@@ -134,6 +134,16 @@ def add_to_favorite(user_vk_id: int, favorite_vk_id: int) -> Favorite:
                 print("❌ Нельзя добавить себя в избранное")
                 return None
 
+            # Проверяем на нахождение в чс
+            existing_blacklist = session.query(Blacklist).filter(
+                Blacklist.user_id == user.id,
+                Blacklist.blocked_vk_id == favorite_vk_id
+            ).first()
+
+            if existing_blacklist:
+                print(f"❌ Невозможно добавить в избранное: пользователь {favorite_vk_id} находится в черном списке")
+                return None
+
             # Проверяем нет ли уже в избранном
             existing_favorite = session.query(Favorite).filter(
                 Favorite.user_id == user.id,
@@ -262,6 +272,16 @@ def add_to_blacklist(user_vk_id: int, blocked_vk_id: int) -> Blacklist:
             if user_vk_id == blocked_vk_id:
                 print("❌ Нельзя добавить себя в черный список")
                 return None
+
+            # Проверка, не находится ли пользователь в избранном
+            existing_favorite = session.query(Favorite).filter(
+                Favorite.user_id == user.id,
+                            Favorite.favorite_vk_id == blocked_vk_id
+            ).first()
+
+            if existing_favorite:
+                 print(f"❌ Невозможно добавить в черный список: пользователь {blocked_vk_id} находится в избранном")
+                 return None
 
             # Проверяем нет ли уже в черном списке
             existing_blacklist = session.query(Blacklist).filter(
