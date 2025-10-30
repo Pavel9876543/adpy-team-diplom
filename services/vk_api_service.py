@@ -38,7 +38,7 @@ def get_users_by_gender(target_age, gender=1, count_photo=3, max_attempts=100, e
     while attempts < max_attempts:
         attempts += 1
 
-        random_user_id = 336964607
+        random_user_id = random.randint(100_000_000, 800_000_000)
 
         # Пропускаем пользователей из чс и избранного
         if random_user_id in exclude_ids:

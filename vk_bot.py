@@ -45,25 +45,25 @@ while True:
                     age = search_user.age
 
                 blacklist_ids = get_blacklist_list_blocked_vk_id(user_id)
-                favorite_ids = get_favorite_list_favorite_vk_id(user_id)
-                exclude_ids = set(blacklist_ids + favorite_ids)
+                # favorite_ids = get_favorite_list_favorite_vk_id(user_id)
+                exclude_ids = set(blacklist_ids)
 
                 opposite_sex = 1 if sex_id == 2 else 2
                 msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_main_menu())
 
                 users = get_users_by_gender(
                     target_age=age,
+                    exclude_ids=exclude_ids,
                     gender=opposite_sex,
                     count_photo=3,
                     max_attempts=150,
-                    exclude_ids=exclude_ids
                 )
-                vk_id = users.get('vk_id')
 
                 # Асинхронное удаление сообщения
                 safe_delete_msg(msg_id)
 
                 if users:
+                    vk_id = users.get('vk_id')
                     keyboard_json = create_inline_keyboard([[f'Добавить в избранное: {vk_id}', f'Добавить в черный список: {vk_id}']])
                     send_msg(
                         user_id,
@@ -115,7 +115,6 @@ while True:
                     if len(blacklist) > 10:
                         send_msg(user_id, f"... и еще {len(blacklist) - 10} человек")
 
-            print(msg[:20])
             if msg[:20] == 'добавить в избранное':
                 save_to_favorites(user_id, int(msg[22:]))
             elif msg[:24] == 'добавить в черный список':
