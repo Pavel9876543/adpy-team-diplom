@@ -1,9 +1,9 @@
 import time
 from vk_api.longpoll import VkEventType
-from db import get_user
+from db import get_user, get_all_favorite, get_all_blacklist
 from config import longpoll
-from handlers import send_msg, safe_delete_msg, keyboard_single_button, create_inline_keyboard
-from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist
+from handlers import send_msg, safe_delete_msg, keyboard_single_button, create_inline_keyboard, keyboard_main_menu
+from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist, get_user_info
 
 # Временное хранилище данных пользователей
 user_data_temp = {}
@@ -32,7 +32,7 @@ while True:
                 # Если пользователь зарегистрирован, предупреждаем при start
                 if msg == "start":
                     send_msg(user_id, "⚠️ Пользователь уже зарегистрирован! Нажмите search, чтобы начать поиск",
-                             custom_keyboard=keyboard_single_button('search'))
+                             custom_keyboard=keyboard_main_menu())
 
             # -------------------- Поиск людей --------------------
             if msg == 'search':
@@ -45,7 +45,7 @@ while True:
                     age = search_user.age
 
                 opposite_sex = 1 if sex_id == 2 else 2
-                msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_single_button('search'))
+                msg_id = send_msg(user_id, "🔍 Ищу подходящих людей...", custom_keyboard=keyboard_main_menu())
 
                 users = get_users_by_gender(target_age=age, gender=opposite_sex, count_photo=3, max_attempts=150)
                 vk_id = users.get('vk_id')
@@ -65,8 +65,45 @@ while True:
                     send_msg(
                         user_id,
                         "К сожалению, не удалось никого найти(",
-                        custom_keyboard=keyboard_single_button('search')
+                        custom_keyboard=keyboard_main_menu()
                     )
+            # -------------------- Просмотр избранного --------------------
+            elif msg == 'favorites':
+                favorites = get_all_favorite(user_id)
+                if not favorites:
+                    send_msg(user_id, "📭 Ваш список избранного пуст",
+                             custom_keyboard=keyboard_main_menu())
+                else:
+                    send_msg(user_id, f"💖 Ваше избранное ({len(favorites)} человек):",
+                             custom_keyboard=keyboard_main_menu())
+                    for fav in favorites[:10]:  # ограничиваем вывод
+                        user_info = get_user_info(fav.favorite_vk_id)
+                        if user_info:
+                            profile_link = f"https://vk.com/id{fav.favorite_vk_id}"
+                            message = f"❤️ {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
+                            send_msg(user_id, message)
+
+                    if len(favorites) > 10:
+                        send_msg(user_id, f"... и еще {len(favorites) - 10} человек")
+
+            # -------------------- Просмотр черного списка --------------------
+            elif msg == 'blacklist':
+                blacklist = get_all_blacklist(user_id)
+                if not blacklist:
+                    send_msg(user_id, "📭 Ваш черный список пуст",
+                             custom_keyboard=keyboard_main_menu())
+                else:
+                    send_msg(user_id, f"🚫 Ваш черный список ({len(blacklist)} человек):",
+                             custom_keyboard=keyboard_main_menu())
+                    for blocked in blacklist[:10]:  # ограничиваем вывод
+                        user_info = get_user_info(blocked.blocked_vk_id)
+                        if user_info:
+                            profile_link = f"https://vk.com/id{blocked.blocked_vk_id}"
+                            message = f"🚫 {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
+                            send_msg(user_id, message)
+
+                    if len(blacklist) > 10:
+                        send_msg(user_id, f"... и еще {len(blacklist) - 10} человек")
 
             print(msg[:20])
             if msg[:20] == 'добавить в избранное':
