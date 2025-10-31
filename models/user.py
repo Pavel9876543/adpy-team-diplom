@@ -21,4 +21,3 @@ class User(Base):
 
     favorites = relationship("Favorite", back_populates="user")
     blacklist = relationship("Blacklist", back_populates="user")
-    photos = relationship("Photo", back_populates="user")
