@@ -99,12 +99,13 @@ cp .env.example .env
 Пример содержимого `.env`:
 
 ```env
-VK_TOKEN=ваш_токен_группы_VK
-DB_USER=postgres
-DB_PASSWORD=пароль
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=vkinder
+VK_BOT_TOKEN=ваш_токен_группы_VK
+VK_SERVICE_TOKEN = ваш_сервисный_токен_приложения_VK
+LOGIN=postgres
+PASSWORD=ваш_пароль
+HOST=localhost
+PORT=5432
+DB_NAME=vkinder_app_db
 ```
 
 ### 4. Инициализация базы данных (про создание бд читать в *settigs.md*)
@@ -123,31 +124,6 @@ python vk_bot.py
 
 После запуска бот начнёт принимать события из ВКонтакте.
 
----
-
-## Основные модули
-
-### db/
-
-* **engine.py** — создаёт подключение (engine, sessionmaker) к базе данных.
-* **crud.py** — реализует функции для добавления, получения и удаления данных.
-
-### models/
-
-* **base.py** — базовый класс SQLAlchemy.
-* **user.py** — модель пользователя VK.
-* **favorite.py** — модель избранных пользователей.
-* **blacklist.py** — модель пользователей, которых не следует показывать.
-
-### services/
-
-* **vk_api_service.py** — обращается к методам VK API (`users.get`, `photos.get`, `messages.send`).
-* **data_service.py** — объединяет функции CRUD и модели для удобной работы в хендлерах.
-
-### handlers/
-
-* **event_handlers.py** — Отправляет/удаляет сообщения
-* **message_handler.py** — основная логика обработки данных пользователя, запрос недостающей информации
 
 ---
 
