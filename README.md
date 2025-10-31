@@ -202,3 +202,5 @@ cp .env.example .env
 bash
 python init_database.py
 ```
+Схема:
+![database_schema](https://github.com/user-attachments/assets/caa37ee1-c599-4329-bd8d-f6e418584c48)
