@@ -50,8 +50,7 @@ def handle_registration(user_id, msg, user_data_temp):
 def save_to_favorites(user_id, favorite_vk_id):
     result_added_favorite = add_to_favorite(user_id, favorite_vk_id)
     if result_added_favorite is None: # Новый случай: ошибка или конфликт
-        # Сообщение уже выведено в crud.py
-        pass # Или можно добавить логирование сюда, если нужно
+        send_msg(user_id, f"❌ Невозможно добавить в избранное: пользователь находится в черном списке")
     elif result_added_favorite is True: # Уже в избранном
          send_msg(user_id, f"⚠️ Пользователь уже в избранном")
     elif result_added_favorite: # Успешно добавлен (возвращен объект Favorite)
@@ -62,8 +61,7 @@ def save_to_favorites(user_id, favorite_vk_id):
 def save_to_blacklist(user_id, blocked_vk_id):
     result_added_favorite = add_to_blacklist(user_id, blocked_vk_id)
     if result_added_favorite is None: # Новый случай: ошибка или конфликт
-        # Сообщение уже выведено в crud.py
-        pass # Или можно добавить логирование сюда, если нужно
+        send_msg(user_id, f"❌ Невозможно добавить в избранное: пользователь находится в избранном")
     elif result_added_favorite is True: # Уже в черном списке
         send_msg(user_id, f"⚠️ Пользователь уже в черном списке")
     elif result_added_favorite: # Успешно добавлен (возвращен объект Blacklist)
