@@ -2,6 +2,7 @@
 """
 Тестирование БД для VKinder с очисткой перед тестом
 """
+from sqlalchemy import text
 from db import get_session
 from models import User
 from models import Favorite
@@ -14,7 +15,12 @@ def cleanup_test_data():
             # Удаляем тестовые данные
             db.query(Blacklist).filter(Blacklist.user_id.in_([1, 2, 3])).delete()
             db.query(Favorite).filter(Favorite.user_id.in_([1, 2, 3])).delete()
-            db.query(User).filter(User.vk_id.in_([123456789, 987654321, 111111111, 777777777])).delete()
+            db.query(User).filter(User.vk_id.in_([123456789, 987654321, 111111111])).delete()
+            db.commit()
+            # Сброс последовательностей (для PostgreSQL)
+            db.execute(text("ALTER SEQUENCE users_id_seq RESTART WITH 1;"))
+            db.execute(text("ALTER SEQUENCE favorites_id_seq RESTART WITH 1;"))
+            db.execute(text("ALTER SEQUENCE blacklist_id_seq RESTART WITH 1;"))
             db.commit()
             print("Старые тестовые данные очищены")
         except Exception as e:

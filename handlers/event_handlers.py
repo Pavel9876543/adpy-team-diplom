@@ -1,4 +1,3 @@
-import json
 import threading
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id

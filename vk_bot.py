@@ -2,7 +2,7 @@ import time
 from vk_api.longpoll import VkEventType
 from db import get_user, get_all_favorite, get_all_blacklist, get_blacklist_list_blocked_vk_id, get_favorite_list_favorite_vk_id
 from config import longpoll
-from handlers import send_msg, safe_delete_msg, keyboard_single_button, create_inline_keyboard, keyboard_main_menu
+from handlers import send_msg, safe_delete_msg, create_inline_keyboard, keyboard_main_menu
 from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist, get_user_info
 
 # Временное хранилище данных пользователей
@@ -64,7 +64,7 @@ while True:
 
                 if users:
                     vk_id = users.get('vk_id')
-                    keyboard_json = create_inline_keyboard([[f'Добавить в избранное: {vk_id}', f'Добавить в черный список: {vk_id}']])
+                    keyboard_json = create_inline_keyboard([[f'В избранное: {vk_id}', f'В черный список: {vk_id}']])
                     send_msg(
                         user_id,
                         f"{users['first_name']} {users['last_name']}\n\n{users['profile_link']}",
@@ -115,10 +115,10 @@ while True:
                     if len(blacklist) > 10:
                         send_msg(user_id, f"... и еще {len(blacklist) - 10} человек")
 
-            if msg[:20] == 'добавить в избранное':
-                save_to_favorites(user_id, int(msg[22:]))
-            elif msg[:24] == 'добавить в черный список':
-                save_to_blacklist(user_id, int(msg[26:]))
+            if msg[:11] == 'в избранное':
+                save_to_favorites(user_id, int(msg[12:]))
+            elif msg[:15] == 'в черный список':
+                save_to_blacklist(user_id, int(msg[16:]))
 
 
 
