@@ -123,7 +123,7 @@ def test_vkinder_database():
             for fav in main_user_favorites:
                 fav_user = db.query(User).filter(User.vk_id == fav.favorite_vk_id).first()
                 if fav_user:
-                    print(f"   👤 {fav_user.first_name} {fav_user.last_name} (VK ID: {fav_user.vk_id}) - в избранном")
+                    print(f"   {fav_user.first_name} {fav_user.last_name} (VK ID: {fav_user.vk_id}) - в избранном")
 
             print("\n БД VKinder наконец-то работает !")
 

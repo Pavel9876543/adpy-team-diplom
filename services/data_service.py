@@ -1,6 +1,6 @@
-from db import add_to_user, add_to_favorite, add_to_blacklist
+from db import add_to_user, add_to_favorite, add_to_blacklist, get_all_favorite, get_all_blacklist
 from handlers import send_msg, keyboard_single_button, process_response, \
-    check_missing_fields, request_field
+    check_missing_fields, request_field, keyboard_main_menu
 from services import get_user_info
 
 
@@ -68,3 +68,39 @@ def save_to_blacklist(user_id, blocked_vk_id):
         send_msg(user_id, "✅ Пользователь успешно добавлен в черный список")
     else: # Остальные ошибки
         send_msg(user_id, "❌ Не удалось добавить пользователя в черный список")
+
+def show_favorites(user_id):
+    favorites = get_all_favorite(user_id)
+    if not favorites:
+        send_msg(user_id, "📭 Ваш список избранного пуст",
+                 custom_keyboard=keyboard_main_menu())
+    else:
+        send_msg(user_id, f"💖 Ваше избранное ({len(favorites)} человек):",
+                 custom_keyboard=keyboard_main_menu())
+        for fav in favorites[:10]:  # ограничиваем вывод
+            user_info = get_user_info(fav.favorite_vk_id)
+            if user_info:
+                profile_link = f"https://vk.com/id{fav.favorite_vk_id}"
+                message = f"❤️ {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
+                send_msg(user_id, message)
+
+        if len(favorites) > 10:
+            send_msg(user_id, f"... и еще {len(favorites) - 10} человек")
+
+def show_blacklist(user_id):
+    blacklist = get_all_blacklist(user_id)
+    if not blacklist:
+        send_msg(user_id, "📭 Ваш черный список пуст",
+                 custom_keyboard=keyboard_main_menu())
+    else:
+        send_msg(user_id, f"🚫 Ваш черный список ({len(blacklist)} человек):",
+                 custom_keyboard=keyboard_main_menu())
+        for blocked in blacklist[:10]:  # ограничиваем вывод
+            user_info = get_user_info(blocked.blocked_vk_id)
+            if user_info:
+                profile_link = f"https://vk.com/id{blocked.blocked_vk_id}"
+                message = f"🚫 {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
+                send_msg(user_id, message)
+
+        if len(blacklist) > 10:
+            send_msg(user_id, f"... и еще {len(blacklist) - 10} человек")

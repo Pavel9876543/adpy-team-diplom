@@ -1,9 +1,20 @@
 import time
+import logging
 from vk_api.longpoll import VkEventType
-from db import get_user, get_all_favorite, get_all_blacklist, get_blacklist_list_blocked_vk_id, get_favorite_list_favorite_vk_id
+from db import get_user, get_blacklist_list_blocked_vk_id
 from config import longpoll
 from handlers import send_msg, safe_delete_msg, create_inline_keyboard, keyboard_main_menu
-from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist, get_user_info
+from services import handle_registration, get_users_by_gender, save_to_favorites, save_to_blacklist
+from services import show_favorites, show_blacklist
+
+# Настройка логгера
+logging.basicConfig(
+    level=logging.ERROR,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("app.log", encoding="utf-8"),  # лог в файл
+    ]
+)
 
 # Временное хранилище данных пользователей
 user_data_temp = {}
@@ -25,24 +36,18 @@ while True:
 
             # -------------------- Проверка на регистрацию --------------------
             if not search_user:
+                # Если пользователь не зарегистрирован, собираем данные и сохраняем
                 sex_id, age = handle_registration(user_id, msg, user_data_temp)
                 if sex_id is None or age is None:
                     continue  # ждём следующего события
-            else:
+            elif msg == "start":
                 # Если пользователь зарегистрирован, предупреждаем при start
-                if msg == "start":
-                    send_msg(user_id, "⚠️ Пользователь уже зарегистрирован! Нажмите search, чтобы начать поиск",
-                             custom_keyboard=keyboard_main_menu())
-
+                send_msg(user_id, "⚠️ Пользователь уже зарегистрирован! Нажмите search, чтобы начать поиск",
+                         custom_keyboard=keyboard_main_menu())
             # -------------------- Поиск людей --------------------
-            if msg == 'search':
-                if not search_user:
-                    # берем только что зарегистрированные данные
-                    if sex_id is None or age is None:
-                        continue
-                else:
-                    sex_id = search_user.sex
-                    age = search_user.age
+            elif msg == 'search':
+                sex_id = search_user.sex
+                age = search_user.age
 
                 blacklist_ids = get_blacklist_list_blocked_vk_id(user_id)
                 # favorite_ids = get_favorite_list_favorite_vk_id(user_id)
@@ -56,7 +61,7 @@ while True:
                     exclude_ids=exclude_ids,
                     gender=opposite_sex,
                     count_photo=3,
-                    max_attempts=150,
+                    max_attempts=200,
                 )
 
                 # Асинхронное удаление сообщения
@@ -77,57 +82,31 @@ while True:
                         "К сожалению, не удалось никого найти(",
                         custom_keyboard=keyboard_main_menu()
                     )
-            # -------------------- Просмотр избранного --------------------
-            elif msg == 'favorites':
-                favorites = get_all_favorite(user_id)
-                if not favorites:
-                    send_msg(user_id, "📭 Ваш список избранного пуст",
-                             custom_keyboard=keyboard_main_menu())
-                else:
-                    send_msg(user_id, f"💖 Ваше избранное ({len(favorites)} человек):",
-                             custom_keyboard=keyboard_main_menu())
-                    for fav in favorites[:10]:  # ограничиваем вывод
-                        user_info = get_user_info(fav.favorite_vk_id)
-                        if user_info:
-                            profile_link = f"https://vk.com/id{fav.favorite_vk_id}"
-                            message = f"❤️ {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
-                            send_msg(user_id, message)
 
-                    if len(favorites) > 10:
-                        send_msg(user_id, f"... и еще {len(favorites) - 10} человек")
-
-            # -------------------- Просмотр черного списка --------------------
-            elif msg == 'blacklist':
-                blacklist = get_all_blacklist(user_id)
-                if not blacklist:
-                    send_msg(user_id, "📭 Ваш черный список пуст",
-                             custom_keyboard=keyboard_main_menu())
-                else:
-                    send_msg(user_id, f"🚫 Ваш черный список ({len(blacklist)} человек):",
-                             custom_keyboard=keyboard_main_menu())
-                    for blocked in blacklist[:10]:  # ограничиваем вывод
-                        user_info = get_user_info(blocked.blocked_vk_id)
-                        if user_info:
-                            profile_link = f"https://vk.com/id{blocked.blocked_vk_id}"
-                            message = f"🚫 {user_info['first_name']} {user_info['last_name']}\n{profile_link}"
-                            send_msg(user_id, message)
-
-                    if len(blacklist) > 10:
-                        send_msg(user_id, f"... и еще {len(blacklist) - 10} человек")
-
-            if msg[:11] == 'в избранное':
+            # -------------------- Добавление в избранное --------------------
+            elif msg[:11] == 'в избранное':
                 save_to_favorites(user_id, int(msg[12:]))
+
+            # -------------------- Добавление в черный список --------------------
             elif msg[:15] == 'в черный список':
                 save_to_blacklist(user_id, int(msg[16:]))
 
+            # -------------------- Просмотр избранного --------------------
+            elif msg == 'favorites':
+                show_favorites(user_id)
 
+            # -------------------- Просмотр черного списка --------------------
+            elif msg == 'blacklist':
+                show_blacklist(user_id)
+
+            else:
+                send_msg(user_id, "Нажмите search, чтобы начать поиск")
 
     except AttributeError as e:
         # защита от редких системных событий longpoll без .text
         continue
     except Exception as e:
         # логируем любые другие ошибки
-        print(f"[Error] {e}")
+        logging.exception(f"[Error] {e}")
         time.sleep(1)
         continue
-
