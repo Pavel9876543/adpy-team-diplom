@@ -30,7 +30,7 @@ if __name__ == "__main__":
         try:
             create_database()
             print("Таблицы успешно созданы!")
-            print("Созданные таблицы: users, photos, favorites, blacklist")
+            print("Созданные таблицы: users, favorites, blacklist")
         except Exception as e:
             print(f"Ошибка при создании таблиц: {e}")
             sys.exit(1)

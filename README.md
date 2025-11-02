@@ -179,4 +179,4 @@ vk.com/id12345
 ```
 
 Схема базы данных:
-![database_schema](https://github.com/user-attachments/assets/caa37ee1-c599-4329-bd8d-f6e418584c48)
+![database_schema](scheme_db.jpg)
